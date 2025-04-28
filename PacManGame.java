@@ -1,12 +1,10 @@
 
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Random;
 
 public class PacManGame {
 
@@ -34,18 +32,12 @@ class GamePanel extends JPanel implements ActionListener {
     private int dx = 0;
     private int dy = 0;
 
-    private int ghostX = 18;
-    private int ghostY = 18;
-
     private boolean mouthOpen = true;
 
     private final int[][] maze = new int[ROWS][COLS];
     private final boolean[][] dots = new boolean[ROWS][COLS];
     private int score = 0;
     private boolean gameWon = false;
-    private boolean gameOver = false;
-
-    private final Random random = new Random();
 
     public GamePanel() {
         setBackground(Color.BLACK);
@@ -56,7 +48,7 @@ class GamePanel extends JPanel implements ActionListener {
             @Override
             public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
-                if ((gameWon || gameOver) && key == KeyEvent.VK_R) {
+                if (gameWon && key == KeyEvent.VK_R) {
                     resetGame();
                 } else {
                     switch (key) {
@@ -94,14 +86,9 @@ class GamePanel extends JPanel implements ActionListener {
         drawMaze(g);
         drawDots(g);
         drawPacman(g);
-        drawGhost(g);
         drawScore(g);
         if (gameWon) {
             drawWinMessage(g);
-            drawRestartMessage(g);
-        }
-        if (gameOver) {
-            drawGameOverMessage(g);
             drawRestartMessage(g);
         }
     }
@@ -137,11 +124,6 @@ class GamePanel extends JPanel implements ActionListener {
         }
     }
 
-    private void drawGhost(Graphics g) {
-        g.setColor(Color.RED);
-        g.fillOval(ghostX * TILE_SIZE, ghostY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-    }
-
     private void drawScore(Graphics g) {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 20));
@@ -154,12 +136,6 @@ class GamePanel extends JPanel implements ActionListener {
         g.drawString("You Win!", 200, 250);
     }
 
-    private void drawGameOverMessage(Graphics g) {
-        g.setColor(Color.RED);
-        g.setFont(new Font("Arial", Font.BOLD, 40));
-        g.drawString("Game Over", 180, 250);
-    }
-
     private void drawRestartMessage(Graphics g) {
         g.setColor(Color.YELLOW);
         g.setFont(new Font("Arial", Font.BOLD, 20));
@@ -169,13 +145,12 @@ class GamePanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         movePacman();
-        moveGhost();
         mouthOpen = !mouthOpen;
         repaint();
     }
 
     private void movePacman() {
-        if (gameWon || gameOver) return;
+        if (gameWon) return;
 
         int newX = pacmanX + dx;
         int newY = pacmanY + dy;
@@ -193,43 +168,6 @@ class GamePanel extends JPanel implements ActionListener {
                     timer.stop();
                 }
             }
-
-            if (pacmanX == ghostX && pacmanY == ghostY) {
-                gameOver = true;
-                timer.stop();
-            }
-        }
-    }
-
-    private void moveGhost() {
-        if (gameWon || gameOver) return;
-
-        int bestDx = 0;
-        int bestDy = 0;
-        int minDistance = Integer.MAX_VALUE;
-
-        int[] dxs = {-1, 1, 0, 0};
-        int[] dys = {0, 0, -1, 1};
-
-        for (int i = 0; i < 4; i++) {
-            int newGhostX = ghostX + dxs[i];
-            int newGhostY = ghostY + dys[i];
-            if (newGhostX >= 0 && newGhostX < COLS && newGhostY >= 0 && newGhostY < ROWS && maze[newGhostY][newGhostX] == 0) {
-                int distance = Math.abs(newGhostX - pacmanX) + Math.abs(newGhostY - pacmanY);
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    bestDx = dxs[i];
-                    bestDy = dys[i];
-                }
-            }
-        }
-
-        ghostX += bestDx;
-        ghostY += bestDy;
-
-        if (pacmanX == ghostX && pacmanY == ghostY) {
-            gameOver = true;
-            timer.stop();
         }
     }
 
@@ -247,13 +185,10 @@ class GamePanel extends JPanel implements ActionListener {
     private void resetGame() {
         pacmanX = 1;
         pacmanY = 1;
-        ghostX = 18;
-        ghostY = 18;
         dx = 0;
         dy = 0;
         score = 0;
         gameWon = false;
-        gameOver = false;
         mouthOpen = true;
         initMaze();
         timer.start();
