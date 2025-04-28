@@ -204,15 +204,28 @@ class GamePanel extends JPanel implements ActionListener {
     private void moveGhost() {
         if (gameWon || gameOver) return;
 
-        int[] dirs = {-1, 0, 1, 0, 0, -1, 0, 1}; // left, right, up, down
-        int dir = random.nextInt(4);
-        int newGhostX = ghostX + dirs[dir * 2];
-        int newGhostY = ghostY + dirs[dir * 2 + 1];
+        int bestDx = 0;
+        int bestDy = 0;
+        int minDistance = Integer.MAX_VALUE;
 
-        if (newGhostX >= 0 && newGhostX < COLS && newGhostY >= 0 && newGhostY < ROWS && maze[newGhostY][newGhostX] == 0) {
-            ghostX = newGhostX;
-            ghostY = newGhostY;
+        int[] dxs = {-1, 1, 0, 0};
+        int[] dys = {0, 0, -1, 1};
+
+        for (int i = 0; i < 4; i++) {
+            int newGhostX = ghostX + dxs[i];
+            int newGhostY = ghostY + dys[i];
+            if (newGhostX >= 0 && newGhostX < COLS && newGhostY >= 0 && newGhostY < ROWS && maze[newGhostY][newGhostX] == 0) {
+                int distance = Math.abs(newGhostX - pacmanX) + Math.abs(newGhostY - pacmanY);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    bestDx = dxs[i];
+                    bestDy = dys[i];
+                }
+            }
         }
+
+        ghostX += bestDx;
+        ghostY += bestDy;
 
         if (pacmanX == ghostX && pacmanY == ghostY) {
             gameOver = true;
